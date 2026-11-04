@@ -12,16 +12,15 @@ on:
 
 jobs:
   deploy:
-    # Runner auto-hébergé sur le PC Windows (Docker Desktop + Git Bash)
-    runs-on: [self-hosted, Windows]
+    # Runner auto-hébergé dans WSL Ubuntu (Docker Desktop, intégration WSL)
+    runs-on: [self-hosted, Linux]
     environment: ${{ inputs.env }}
     permissions:
       contents: read
       packages: read
     defaults:
       run:
-        # Git Bash explicitement (le "bash" du PATH Windows est celui de WSL)
-        shell: C:\PROGRA~1\Git\bin\bash.exe --noprofile --norc -eo pipefail {0}
+        shell: bash
     env:
       NIFI_IMAGE: ${{ inputs.image }}
       NIFI_PASSWORD: ${{ secrets.NIFI_PASSWORD }}
@@ -29,12 +28,12 @@ jobs:
       MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
       PGADMIN_PASSWORD: ${{ secrets.PGADMIN_PASSWORD }}
       COMPOSE: docker compose -p meteoflow-${{ inputs.env }} --env-file env/${{ inputs.env }}.env
-      PYTHON: .venv/Scripts/python.exe
+      PYTHON: .venv/bin/python
     steps:
       - uses: actions/checkout@v7
       - name: Préparer Python
         run: |
-          python -m venv .venv
+          python3 -m venv .venv
           $PYTHON -m pip install -q -r requirements-dev.txt
       - name: Connexion à GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
