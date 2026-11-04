@@ -32,6 +32,12 @@ jobs:
       # Config Docker propre au job : évite le gestionnaire d'identifiants Windows (desktop.exe) depuis WSL
       DOCKER_CONFIG: ${{ github.workspace }}/.docker-ci
     steps:
+      - name: Vérifier les secrets
+        run: |
+          for v in NIFI_PASSWORD PG_PASSWORD MONGO_PASSWORD PGADMIN_PASSWORD; do
+            [ -n "${!v}" ] || { echo "::error::Secret $v manquant dans l'environnement ${{ inputs.env }}"; exit 1; }
+          done
+          [ ${#NIFI_PASSWORD} -ge 12 ] || { echo "::error::NIFI_PASSWORD doit faire au moins 12 caractères (NiFi le refuse sinon)"; exit 1; }
       - uses: actions/checkout@v7
       - name: Préparer Python
         run: |
