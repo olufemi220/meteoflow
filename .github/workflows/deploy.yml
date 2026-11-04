@@ -1,0 +1,50 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        type: string
+        required: true
+      image:
+        type: string
+        required: true
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment: ${{ inputs.env }}
+    permissions:
+      contents: read
+      packages: read
+    defaults:
+      run:
+        shell: bash
+    env:
+      NIFI_IMAGE: ${{ inputs.image }}
+      NIFI_PASSWORD: ${{ secrets.NIFI_PASSWORD }}
+      PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+      MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+      PGADMIN_PASSWORD: ${{ secrets.PGADMIN_PASSWORD }}
+      COMPOSE: docker compose -p meteoflow-${{ inputs.env }} --env-file env/${{ inputs.env }}.env
+      PYTHON: .venv/bin/python
+    steps:
+      - uses: actions/checkout@v4
+      - name: Préparer Python
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -q -r requirements-dev.txt
+      - name: Connexion à GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Mettre à jour la stack
+        run: |
+          $COMPOSE pull nifi
+          $COMPOSE up -d
+      - name: Déployer le flux
+        run: |
+          set -a; source env/${{ inputs.env }}.env; set +a
+          $PYTHON scripts/deploy_flow.py --env ${{ inputs.env }}
+      - name: Vérifier les données
+        run: |
+          set -a; source env/${{ inputs.env }}.env; set +a
+          scripts/check_pipeline.sh ${{ inputs.env }} 600

@@ -1,0 +1,21 @@
+# NiFi installé directement sur Windows ; bases Docker jointes via localhost
+# MongoDB Docker publié sur 27018 (un MongoDB Windows occupe déjà 27017) : MONGO_PORT=27018 dans .env
+nifi:
+  url: https://localhost:8443
+parameters:
+  api_base_url: https://api.open-meteo.com
+  api_fields: temperature_2m,relative_humidity_2m,wind_speed_10m
+  alert_temp_max: "35"
+  mongo_uri: mongodb://localhost:27018/?authSource=admin
+  mongo_database: meteo
+  mongo_user: meteo
+  pg_url: jdbc:postgresql://localhost:5432/meteo
+  pg_user: meteo
+cities:
+  - { city: Paris, lat: 48.85, lon: 2.35 }
+  - { city: Lyon, lat: 45.76, lon: 4.84 }
+  - { city: Marseille, lat: 43.30, lon: 5.37 }
+  - { city: Toulouse, lat: 43.60, lon: 1.44 }
+sensitive: # paramètre NiFi: variable d'environnement
+  mongo_password: MONGO_PASSWORD
+  pg_password: PG_PASSWORD
