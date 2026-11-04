@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     tags: ["v*.*.*"]
+  workflow_dispatch: # bouton "Run workflow" pour relancer à la main
 
 permissions:
   contents: read
