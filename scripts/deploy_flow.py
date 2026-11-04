@@ -101,8 +101,17 @@ def set_services(nifi: Nifi, pg_id: str, state: str):
     body = {"id": pg_id, "state": state}
     wait(lambda: nifi.call("PUT", f"/flow/process-groups/{pg_id}/controller-services",
                            check=False, json=body).ok, f"services -> {state}")
-    wait(lambda: all(s["component"]["state"] == state for s in services(nifi, pg_id)),
-         f"services -> {state}")
+    def done() -> bool:
+        return all(s["component"]["state"] == state for s in services(nifi, pg_id))
+
+    end = time.time() + 180
+    while time.time() < end:
+        if done():
+            return
+        time.sleep(3)
+    details = [f"{s['component']['name']} : {s['component']['state']} {s['component'].get('validationErrors') or ''}"
+               for s in services(nifi, pg_id)]
+    sys.exit(f"Délai dépassé : services -> {state}\n" + "\n".join(details))
 
 
 def remove_group(nifi: Nifi, pg_id: str):

@@ -34,7 +34,7 @@ jobs:
           context: ./nifi
           push: true
           tags: ${{ steps.meta.outputs.name }}
-          build-args: NIFI_VERSION=2.6.0
+          build-args: NIFI_VERSION=2.12.0
 
   staging:
     if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
