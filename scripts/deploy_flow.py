@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Déploie le flux MétéoFlow dans NiFi 2.x via l'API REST.
 
 Exemple : python scripts/deploy_flow.py --env dev

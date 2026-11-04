@@ -57,7 +57,7 @@ jobs:
         if: steps.flow.outputs.ok == 'true'
         run: |
           set -a; source .env; set +a
-          scripts/check_pipeline.sh dev 300
+          bash scripts/check_pipeline.sh dev 300
       - name: Logs en cas d'échec
         if: failure()
         run: docker compose logs --tail=200

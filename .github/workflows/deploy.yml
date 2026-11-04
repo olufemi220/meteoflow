@@ -47,4 +47,4 @@ jobs:
       - name: Vérifier les données
         run: |
           set -a; source env/${{ inputs.env }}.env; set +a
-          scripts/check_pipeline.sh ${{ inputs.env }} 600
+          bash scripts/check_pipeline.sh ${{ inputs.env }} 600
