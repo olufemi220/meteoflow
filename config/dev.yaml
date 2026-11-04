@@ -1,0 +1,19 @@
+nifi:
+  url: https://localhost:8443
+parameters:
+  api_base_url: http://mock-api:8080
+  api_fields: temperature_2m,relative_humidity_2m,wind_speed_10m
+  alert_temp_max: "35"
+  mongo_uri: mongodb://mongo:27017/?authSource=admin
+  mongo_database: meteo
+  mongo_user: meteo
+  pg_url: jdbc:postgresql://postgres:5432/meteo
+  pg_user: meteo
+cities:
+  - { city: Paris, lat: 48.85, lon: 2.35 }
+  - { city: Lyon, lat: 45.76, lon: 4.84 }
+  - { city: Marseille, lat: 43.30, lon: 5.37 }
+  - { city: Toulouse, lat: 43.60, lon: 1.44 }
+sensitive: # paramètre NiFi: variable d'environnement
+  mongo_password: MONGO_PASSWORD
+  pg_password: PG_PASSWORD

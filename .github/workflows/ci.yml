@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_call: # réutilisé par le CD
+
+jobs:
+  lint-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - name: Lint Python
+        run: ruff check .
+      - name: Lint YAML
+        run: yamllint .
+      - name: Valider le flux JSON
+        if: hashFiles('flows/meteoflow.json') != ''
+        run: python -m json.tool flows/meteoflow.json > /dev/null
+      - name: Tests unitaires
+        run: pytest -v
+
+  integration:
+    needs: lint-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Flux exporté ?
+        id: flow
+        run: |
+          if [ -f flows/meteoflow.json ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "flows/meteoflow.json absent : test d'intégration ignoré"
+          fi
+      - uses: actions/setup-python@v5
+        if: steps.flow.outputs.ok == 'true'
+        with:
+          python-version: "3.12"
+      - if: steps.flow.outputs.ok == 'true'
+        run: pip install -r requirements-dev.txt
+      - name: Démarrer la stack avec l'API simulée
+        if: steps.flow.outputs.ok == 'true'
+        run: |
+          cp .env.example .env
+          docker compose up -d --build
+      - name: Déployer le flux (env dev)
+        if: steps.flow.outputs.ok == 'true'
+        run: |
+          set -a; source .env; set +a
+          python scripts/deploy_flow.py --env dev
+      - name: Vérifier PostgreSQL et MongoDB
+        if: steps.flow.outputs.ok == 'true'
+        run: |
+          set -a; source .env; set +a
+          bash scripts/check_pipeline.sh dev 300
+      - name: Logs en cas d'échec
+        if: failure()
+        run: docker compose logs --tail=200
+      - name: Arrêter la stack
+        if: always() && steps.flow.outputs.ok == 'true'
+        run: docker compose down -v
