@@ -12,14 +12,16 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    # Runner auto-hébergé sur le PC Windows (Docker Desktop + Git Bash)
+    runs-on: [self-hosted, Windows]
     environment: ${{ inputs.env }}
     permissions:
       contents: read
       packages: read
     defaults:
       run:
-        shell: bash
+        # Git Bash explicitement (le "bash" du PATH Windows est celui de WSL)
+        shell: C:\PROGRA~1\Git\bin\bash.exe --noprofile --norc -eo pipefail {0}
     env:
       NIFI_IMAGE: ${{ inputs.image }}
       NIFI_PASSWORD: ${{ secrets.NIFI_PASSWORD }}
@@ -27,13 +29,13 @@ jobs:
       MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
       PGADMIN_PASSWORD: ${{ secrets.PGADMIN_PASSWORD }}
       COMPOSE: docker compose -p meteoflow-${{ inputs.env }} --env-file env/${{ inputs.env }}.env
-      PYTHON: .venv/bin/python
+      PYTHON: .venv/Scripts/python.exe
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Préparer Python
         run: |
-          python3 -m venv .venv
-          .venv/bin/pip install -q -r requirements-dev.txt
+          python -m venv .venv
+          $PYTHON -m pip install -q -r requirements-dev.txt
       - name: Connexion à GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Mettre à jour la stack
@@ -48,3 +50,6 @@ jobs:
         run: |
           set -a; source env/${{ inputs.env }}.env; set +a
           bash scripts/check_pipeline.sh ${{ inputs.env }} 600
+      - name: Logs en cas d'échec
+        if: failure()
+        run: $COMPOSE logs --tail=100 nifi

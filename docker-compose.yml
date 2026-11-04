@@ -14,8 +14,8 @@ services:
       SINGLE_USER_CREDENTIALS_PASSWORD: ${NIFI_PASSWORD}
       NIFI_WEB_HTTPS_PORT: "8443"
       NIFI_WEB_PROXY_HOST: "localhost:${NIFI_PORT:-8443}"
-      NIFI_JVM_HEAP_INIT: 1g
-      NIFI_JVM_HEAP_MAX: 2g
+      NIFI_JVM_HEAP_INIT: ${NIFI_HEAP_INIT:-1g}
+      NIFI_JVM_HEAP_MAX: ${NIFI_HEAP_MAX:-2g}
       TZ: UTC # les heures de l'API sont en UTC
     volumes:
       - nifi_conf:/opt/nifi/nifi-current/conf
