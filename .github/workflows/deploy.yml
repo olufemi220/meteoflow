@@ -29,6 +29,8 @@ jobs:
       PGADMIN_PASSWORD: ${{ secrets.PGADMIN_PASSWORD }}
       COMPOSE: docker compose -p meteoflow-${{ inputs.env }} --env-file env/${{ inputs.env }}.env
       PYTHON: .venv/bin/python
+      # Config Docker propre au job : évite le gestionnaire d'identifiants Windows (desktop.exe) depuis WSL
+      DOCKER_CONFIG: ${{ github.workspace }}/.docker-ci
     steps:
       - uses: actions/checkout@v7
       - name: Préparer Python
@@ -36,7 +38,9 @@ jobs:
           python3 -m venv .venv
           $PYTHON -m pip install -q -r requirements-dev.txt
       - name: Connexion à GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+        run: |
+          mkdir -p "$DOCKER_CONFIG" && echo '{}' > "$DOCKER_CONFIG/config.json"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Mettre à jour la stack
         run: |
           $COMPOSE pull nifi
