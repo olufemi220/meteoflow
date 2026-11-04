@@ -22,3 +22,4 @@ bin-release/
 .venv/
 __pycache__/
 .pytest_cache/
+diag.txt
