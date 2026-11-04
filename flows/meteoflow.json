@@ -5,8 +5,8 @@
     "name": "MeteoFlow",
     "comments": "",
     "position": {
-      "x": -1352,
-      "y": -104
+      "x": -1520,
+      "y": -680
     },
     "processGroups": [],
     "remoteProcessGroups": [],
@@ -129,7 +129,7 @@
         "comments": "",
         "position": {
           "x": 0,
-          "y": 200
+          "y": 168
         },
         "type": "org.apache.nifi.processors.standard.SplitJson",
         "bundle": {
@@ -341,7 +341,7 @@
           "Custom Transformation Class Name": null,
           "Custom Module Directory": null,
           "Pretty Print": "false",
-          "Jolt Specification": "[\n  {\n    \"operation\": \"shift\",\n    \"spec\": {\n      \"current\": {\n        \"time\": \"measured_at\",\n        \"temperature_2m\": \"temperature\",\n        \"relative_humidity_2m\": \"humidity\",\n        \"wind_speed_10m\": \"wind_speed\"\n      }\n    }\n  },\n  {\n    \"operation\": \"default\",\n    \"spec\": {\n      \"city\": \"${city}\"\n    }\n  }\n]"
+          "Jolt Specification": "[\n  {\n    \"operation\": \"shift\",\n    \"spec\": {\n      \"current\": {\n        \"time\": \"measured_at\",\n        \"temperature_2m\": \"temperature\",\n        \"relative_humidity_2m\": \"humidity\",\n        \"wind_speed_10m\": \"wind_speed\"\n      }\n    }\n  },\n  {\n    \"operation\": \"modify-overwrite-beta\",\n    \"spec\": {\n      \"measured_at\": \"=concat(@(1,measured_at),'Z')\"\n    }\n  },\n  {\n    \"operation\": \"default\",\n    \"spec\": {\n      \"city\": \"${city}\"\n    }\n  }\n]"
         },
         "propertyDescriptors": {
           "JSON Source": {
@@ -454,7 +454,7 @@
         "comments": "",
         "position": {
           "x": 0,
-          "y": 400
+          "y": 408
         },
         "type": "org.apache.nifi.processors.standard.EvaluateJsonPath",
         "bundle": {
@@ -554,8 +554,8 @@
         "name": "Alerte canicule",
         "comments": "",
         "position": {
-          "x": 900,
-          "y": 1200
+          "x": 1672,
+          "y": 1320
         },
         "type": "org.apache.nifi.processors.standard.LogAttribute",
         "bundle": {
@@ -673,8 +673,8 @@
         "name": "RouteOnAttribute",
         "comments": "",
         "position": {
-          "x": 900,
-          "y": 1000
+          "x": 1680,
+          "y": 960
         },
         "type": "org.apache.nifi.processors.standard.RouteOnAttribute",
         "bundle": {
@@ -1171,8 +1171,8 @@
         "name": "GenerateFlowFile",
         "comments": "",
         "position": {
-          "x": 0,
-          "y": 0
+          "x": 56,
+          "y": -200
         },
         "type": "org.apache.nifi.processors.standard.GenerateFlowFile",
         "bundle": {
@@ -1675,8 +1675,8 @@
         "name": "Erreurs",
         "comments": "",
         "position": {
-          "x": 900,
-          "y": 600
+          "x": 1088,
+          "y": 512
         },
         "type": "org.apache.nifi.processors.standard.LogAttribute",
         "bundle": {
@@ -3157,7 +3157,7 @@
           "Schema Registry": null,
           "Schema Access Strategy": "inherit-record-schema",
           "Schema Name": "${schema.name}",
-          "Timestamp Format": "yyyy-MM-dd'T'HH:mm",
+          "Timestamp Format": "yyyy-MM-dd'T'HH:mmX",
           "Date Format": null,
           "Pretty Print JSON": "false",
           "Suppress Null Values": "never-suppress",
@@ -3356,7 +3356,7 @@
           "Schema Registry": null,
           "Schema Access Strategy": "schema-text-property",
           "Schema Name": "${schema.name}",
-          "Timestamp Format": "yyyy-MM-dd'T'HH:mm",
+          "Timestamp Format": "yyyy-MM-dd'T'HH:mmX",
           "Date Format": null,
           "Schema Application Strategy": "SELECTED_PART",
           "Schema Version": null,
