@@ -14,6 +14,7 @@ cities:
   - { city: Lyon, lat: 45.76, lon: 4.84 }
   - { city: Marseille, lat: 43.30, lon: 5.37 }
   - { city: Toulouse, lat: 43.60, lon: 1.44 }
+  - { city: Bordeaux, lat: 44.84, lon: -0.58 }
 sensitive: # paramètre NiFi: variable d'environnement
   mongo_password: MONGO_PASSWORD
   pg_password: PG_PASSWORD
