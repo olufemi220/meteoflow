@@ -114,21 +114,36 @@ def set_services(nifi: Nifi, pg_id: str, state: str):
     sys.exit(f"Délai dépassé : services -> {state}\n" + "\n".join(details))
 
 
+def all_stopped(nifi: Nifi, pg_id: str) -> bool:
+    procs = nifi.get(f"/process-groups/{pg_id}/processors")["processors"]
+    return all(p["component"]["state"] != "RUNNING"
+               and p["status"]["aggregateSnapshot"].get("activeThreadCount", 0) == 0 for p in procs)
+
+
 def remove_group(nifi: Nifi, pg_id: str):
     print("Arrêt et suppression de l'ancienne version...")
     nifi.put(f"/flow/process-groups/{pg_id}", {"id": pg_id, "state": "STOPPED"})
+    wait(lambda: all_stopped(nifi, pg_id), "arrêt complet des processeurs")
     set_services(nifi, pg_id, "DISABLED")
     drop = nifi.call("POST", f"/process-groups/{pg_id}/empty-all-connections-requests").json()
     drop_url = f"/process-groups/{pg_id}/empty-all-connections-requests/{drop['dropRequest']['id']}"
     wait(lambda: nifi.get(drop_url)["dropRequest"]["finished"], "vidage des files")
     nifi.call("DELETE", drop_url)
 
+    last_error = {"text": ""}
+
     def try_delete() -> bool:
         version = nifi.get(f"/process-groups/{pg_id}")["revision"]["version"]
         url = f"/process-groups/{pg_id}?version={version}&clientId={CLIENT_ID}"
-        return nifi.call("DELETE", url, check=False).ok
+        r = nifi.call("DELETE", url, check=False)
+        last_error["text"] = r.text[:300]
+        return r.ok
 
-    wait(try_delete, "suppression de l'ancien groupe")
+    end = time.time() + 180
+    while not try_delete():
+        if time.time() > end:
+            sys.exit(f"Délai dépassé : suppression de l'ancien groupe ({last_error['text']})")
+        time.sleep(3)
 
 
 def recreate_context(nifi: Nifi, name: str, params: dict) -> str:

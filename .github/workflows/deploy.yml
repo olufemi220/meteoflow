@@ -43,7 +43,7 @@ jobs:
           for v in NIFI_PASSWORD PG_PASSWORD MONGO_PASSWORD PGADMIN_PASSWORD; do
             gh="GH_$v"; val="${!gh}"
             if [ -z "$val" ]; then
-              val=$(grep "^$v=" "$store" | cut -d= -f2-)
+              val=$(grep "^$v=" "$store" | cut -d= -f2- || true)
               if [ -z "$val" ]; then
                 val=$(openssl rand -hex 12)
                 echo "$v=$val" >> "$store"
