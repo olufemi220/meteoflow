@@ -76,9 +76,27 @@ services:
     ports:
       - "${MOCK_PORT:-8081}:8080"
 
+  grafana:
+    image: grafana/grafana:12.2.1
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/meteoflow.json
+      PG_USER: ${PG_USER}
+      PG_DB: ${PG_DB}
+      PG_PASSWORD: ${PG_PASSWORD}
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - postgres
+
 volumes:
   nifi_conf:
   nifi_state:
   pg_data:
   mongo_data:
   pgadmin_data:
+  grafana_data:

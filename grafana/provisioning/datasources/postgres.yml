@@ -1,0 +1,14 @@
+apiVersion: 1
+datasources:
+  - name: MeteoFlow PostgreSQL
+    uid: meteoflow-pg
+    type: grafana-postgresql-datasource
+    url: postgres:5432
+    user: ${PG_USER}
+    jsonData:
+      database: ${PG_DB}
+      sslmode: disable
+      postgresVersion: 1400
+    secureJsonData:
+      password: ${PG_PASSWORD}
+    isDefault: true

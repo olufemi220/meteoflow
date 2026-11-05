@@ -1,0 +1,143 @@
+{
+  "uid": "meteoflow",
+  "title": "MétéoFlow",
+  "timezone": "browser",
+  "refresh": "1m",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Température (°C)",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "meteoflow-pg"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "meteoflow-pg"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "editorMode": "code",
+          "rawSql": "SELECT measured_at AS time, city AS metric, temperature AS value\nFROM weather_measurements\nWHERE $__timeFilter(measured_at)\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Humidité (%)",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "meteoflow-pg"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "humidity"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "meteoflow-pg"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "editorMode": "code",
+          "rawSql": "SELECT measured_at AS time, city AS metric, humidity AS value\nFROM weather_measurements\nWHERE $__timeFilter(measured_at)\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Vent (km/h)",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "meteoflow-pg"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "velocitykmh"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "meteoflow-pg"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "editorMode": "code",
+          "rawSql": "SELECT measured_at AS time, city AS metric, wind_speed AS value\nFROM weather_measurements\nWHERE $__timeFilter(measured_at)\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Synthèse par jour (vue weather_daily)",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "meteoflow-pg"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "meteoflow-pg"
+          },
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code",
+          "rawSql": "SELECT city AS ville, jour, temp_moy AS \"moyenne °C\", temp_max AS \"max °C\"\nFROM weather_daily\nORDER BY jour DESC, ville"
+        }
+      ]
+    }
+  ]
+}
