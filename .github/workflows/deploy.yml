@@ -23,21 +23,38 @@ jobs:
         shell: bash
     env:
       NIFI_IMAGE: ${{ inputs.image }}
-      NIFI_PASSWORD: ${{ secrets.NIFI_PASSWORD }}
-      PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
-      MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-      PGADMIN_PASSWORD: ${{ secrets.PGADMIN_PASSWORD }}
       COMPOSE: docker compose -p meteoflow-${{ inputs.env }} --env-file env/${{ inputs.env }}.env
       PYTHON: .venv/bin/python
       # Config Docker propre au job : évite le gestionnaire d'identifiants Windows (desktop.exe) depuis WSL
       DOCKER_CONFIG: ${{ github.workspace }}/.docker-ci
     steps:
-      - name: Vérifier les secrets
+      - name: Préparer les secrets
+        env:
+          GH_NIFI_PASSWORD: ${{ secrets.NIFI_PASSWORD }}
+          GH_PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+          GH_MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+          GH_PGADMIN_PASSWORD: ${{ secrets.PGADMIN_PASSWORD }}
+        # Secret absent de GitHub -> mot de passe aléatoire généré une fois sur le runner
+        # et conservé dans /root/meteoflow-secrets/<env>.env (lisible par root seulement).
         run: |
+          store=/root/meteoflow-secrets/${{ inputs.env }}.env
+          mkdir -p "$(dirname "$store")" && chmod 700 "$(dirname "$store")"
+          touch "$store" && chmod 600 "$store"
           for v in NIFI_PASSWORD PG_PASSWORD MONGO_PASSWORD PGADMIN_PASSWORD; do
-            [ -n "${!v}" ] || { echo "::error::Secret $v manquant dans l'environnement ${{ inputs.env }}"; exit 1; }
+            gh="GH_$v"; val="${!gh}"
+            if [ -z "$val" ]; then
+              val=$(grep "^$v=" "$store" | cut -d= -f2-)
+              if [ -z "$val" ]; then
+                val=$(openssl rand -hex 12)
+                echo "$v=$val" >> "$store"
+                echo "$v généré sur le runner ($store)"
+              fi
+            fi
+            echo "::add-mask::$val"
+            echo "$v=$val" >> "$GITHUB_ENV"
           done
-          [ ${#NIFI_PASSWORD} -ge 12 ] || { echo "::error::NIFI_PASSWORD : 12 caractères minimum"; exit 1; }
+          nifi=$(grep '^NIFI_PASSWORD=' "$GITHUB_ENV" | tail -1 | cut -d= -f2-)
+          [ ${#nifi} -ge 12 ] || { echo "::error::NIFI_PASSWORD : 12 caractères minimum"; exit 1; }
       - uses: actions/checkout@v7
       - name: Préparer Python
         run: |
